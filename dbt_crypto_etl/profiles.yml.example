@@ -1,0 +1,12 @@
+dbt_crypto_etl:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: YOUR_GCP_PROJECT
+      dataset: dbt_output
+      location: US
+      keyfile: /path/to/your/service-account.json
+      threads: 4
+      timeout_seconds: 300

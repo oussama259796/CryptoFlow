@@ -1,0 +1,13 @@
+models:
+  - name: fct_market_snapshot
+    columns:
+      - name: coin_sk
+        tests:
+          - unique
+          - not_null
+      - name: time_id
+        tests:
+          - not_null
+      - name: coin_id
+        tests:
+          - not_null
