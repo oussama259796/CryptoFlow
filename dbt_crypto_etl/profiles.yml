@@ -1,0 +1,13 @@
+dbt_crypto_etl:
+  target: prod
+  outputs:
+    prod:
+      type: bigquery
+      method: service-account-json
+      project: "{{ env_var('GCP_PROJECT') }}"
+      dataset: "{{ env_var('DBT_DATASET') }}"
+      location: "{{ env_var('DBT_LOCATION', 'US') }}"
+      threads: 4
+      timeout_seconds: 300
+      priority: interactive
+      keyfile_json: "{{ env_var('GCP_CREDENTIALS') }}"

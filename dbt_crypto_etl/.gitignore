@@ -4,6 +4,6 @@ dbt_packages/
 logs/
 package-lock.yml
 
-profiles.yml
+
 
 .user.yml
