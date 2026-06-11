@@ -2,7 +2,7 @@ name: CryptoFlow Pipeline
 
 on:
   schedule:
-    - cron: '*/15 * * * *' 
+    - cron: '*/15 * * * *'
   push:
     branches: [main]
   workflow_dispatch:
@@ -14,6 +14,13 @@ permissions:
 jobs:
   run-pipeline:
     runs-on: ubuntu-latest
+
+    env:
+      DBT_PROFILES_DIR: ./dbt_crypto_etl
+      GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+      DBT_DATASET: ${{ secrets.DBT_DATASET }}
+      DBT_LOCATION: ${{ secrets.GCP_LOCATION }}
+      GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
 
     steps:
       - name: Checkout code
@@ -35,29 +42,12 @@ jobs:
 
       - name: Ingest data from CoinGecko
         run: python src/ingest.py
-      - name: Create dbt profiles
-        run: |
-          mkdir -p ~/.dbt
-          echo '${{ secrets.GCP_CREDENTIALS }}' > /tmp/gcp_credentials.json
-          cat > ~/.dbt/profiles.yml << 'EOF'
-          crypto_etl:
-            target: prod
-            outputs:
-              prod:
-                type: bigquery
-                method: service-account-json
-                project: ${{ fromJson(secrets.GCP_CREDENTIALS).project_id }}
-                dataset: bronze
-                threads: 4
-                timeout_seconds: 300
-                keyfile_json: ${{ secrets.GCP_CREDENTIALS }}
-          EOF
-          
+
       - name: Run dbt build
         run: |
           cd dbt_crypto_etl
           dbt deps
-          dbt build
+          dbt build --profiles-dir .
 
       - name: Notify on failure
         if: failure()
