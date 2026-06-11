@@ -1,0 +1,47 @@
+name: CryptoFlow Pipeline
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' 
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -e .
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Ingest data from CoinGecko
+        run: python src/ingest.py
+
+      - name: Run dbt build
+        run: |
+          cd dbt_crypto_etl
+          dbt deps
+          dbt build
+
+      - name: Notify on failure
+        if: failure()
+        run: echo "Pipeline failed! Check the logs."
